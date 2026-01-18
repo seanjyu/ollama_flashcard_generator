@@ -1,0 +1,31 @@
+[project]
+name = "flashcard-gen"
+version = "0.1.0"
+description = "Generate flashcards from markdown notes using local LLMs through Ollama"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "ollama>=0.1.0",
+    "pydantic>=2.0.0",
+    "numpy>=1.24.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.1.0",
+]
+
+[project.scripts]
+flashcard-gen = "flashcard_gen.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
