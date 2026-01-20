@@ -40,7 +40,7 @@ cards = generate_flashcard_set("## Topic\n\nContent...", num_cards=5)
 
 ## Requirements
 
-- Python 3.10+
+- Python 3.12+
 - [Ollama](https://ollama.com/download) with a model installed (e.g. `ollama pull qwen2.5:3b`)
 
 ### Python Packages
