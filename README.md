@@ -14,11 +14,6 @@ The program splits markdown files into chunks and generates flashcards for each 
 - RAG support for better keyword-targeted generation
 - Runs fully local via Ollama
 
-## Limitations
-
-- Card quality varies by model (bigger models = better results)
-- Focus was on structured generation, LLM may still produce odd outputs sometimes
-
 ## Install
 Clone repo
 ```
