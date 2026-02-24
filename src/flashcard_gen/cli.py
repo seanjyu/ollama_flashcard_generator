@@ -5,9 +5,13 @@ import json
 import sys
 from pathlib import Path
 
-from .generate import generate_flashcard_set
-from .schema import SimilarityMethod
-
+from .generate import generate_flashcard_set, generate_flashcard_set_rag
+from .chunker import (
+    ChunkByHeader,
+    ChunkByParagraph,
+    ChunkByLength,
+    ChunkHeaderThenParagraph,
+)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -16,9 +20,11 @@ def main():
         epilog="""
 Examples:
   flashcard-gen notes.md
-  flashcard-gen notes.md -n 10 -k "mitosis" "ATP"
+  flashcard-gen notes.md -n 10 -k "sigmoid" "relu"
   flashcard-gen notes.md -t cloze -o cards.json
-  flashcard-gen notes.md --semantic-dedup
+  flashcard-gen notes.md --rag -k "sigmoid" "relu"
+  flashcard-gen notes.md --chunker header
+  flashcard-gen notes.md --output-format json
         """
     )
 
@@ -29,10 +35,20 @@ Examples:
                         default="basic", help="Card type (default: basic)")
     parser.add_argument("-m", "--model", default="qwen2.5:3b", help="Ollama model")
     parser.add_argument("-o", "--output", help="Output file (default: stdout)")
-    parser.add_argument("--semantic-dedup", action="store_true",
-                        help="Use semantic similarity for deduplication")
     parser.add_argument("--format", choices=["json", "csv", "anki"],
                         default="json", help="Output format (default: json)")
+    parser.add_argument("--output-format", choices=["simple", "json"],
+                        default="simple", help="LLM output format (default: simple)")
+    parser.add_argument("--rag", action="store_true",
+                        help="Use RAG for context retrieval")
+    parser.add_argument("--chunker", choices=["header", "paragraph", "length", "hierarchical"],
+                        default="hierarchical", help="Chunking strategy (default: hierarchical)")
+    parser.add_argument("--threshold", type=float, default=0.7,
+                        help="Duplicate detection threshold (default: 0.7)")
+    parser.add_argument("--temperature", type=float, default=0.7,
+                        help="LLM temperature (default: 0.7)")
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="Print debug info")
 
     args = parser.parse_args()
 
@@ -58,17 +74,33 @@ Examples:
         print(f"Error: Cannot connect to Ollama. Is it running?\n{e}", file=sys.stderr)
         sys.exit(1)
 
-    # Generate
-    similarity = SimilarityMethod.BOTH if args.semantic_dedup else SimilarityMethod.STRING
+    # Select chunker
+    chunker_map = {
+        "header": ChunkByHeader(),
+        "paragraph": ChunkByParagraph(),
+        "length": ChunkByLength(),
+        "hierarchical": ChunkHeaderThenParagraph(),
+    }
+    chunker = chunker_map[args.chunker]
 
-    cards = generate_flashcard_set(
-        notes=notes,
-        num_cards=args.num,
-        keywords=args.keywords,
-        model=args.model,
-        card_type=args.type,
-        similarity_method=similarity,
-    )
+    # Generate
+    common_args = {
+        "notes": notes,
+        "num_cards": args.num,
+        "keywords": args.keywords,
+        "model": args.model,
+        "card_type": args.type,
+        "output_format": args.output_format,
+        "chunker": chunker,
+        "string_threshold": args.threshold,
+        "temperature": args.temperature,
+        "verbose": args.verbose,
+    }
+
+    if args.rag:
+        cards = generate_flashcard_set_rag(**common_args)
+    else:
+        cards = generate_flashcard_set(**common_args)
 
     if not cards:
         print("Warning: No cards generated", file=sys.stderr)
