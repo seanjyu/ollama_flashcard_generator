@@ -1,3 +1,5 @@
+from flashcard_gen import generate_flashcard_set
+
 # Ollama Flashcard Generator
 
 Generate flashcards from markdown notes using local LLMs through Ollama. Built as a foundation for a future Obsidian plugin.
@@ -8,7 +10,8 @@ The program splits markdown files into chunks and generates flashcards for each 
 
 - Basic Q&A and cloze deletion card types
 - String similarity and semantic embedding duplicate detection
-- Chunked processing for long documents
+- Multiple chunking strategies (header, paragraph, length, hierarchical)
+- RAG support for better keyword-targeted generation
 - Runs fully local via Ollama
 
 ## Limitations
@@ -31,11 +34,14 @@ pip install -e .
 CLI - Also see [cli docs](cli_docs.md).
 ```bash
 flashcard-gen notes.md -n 5
+flashcard-gen notes.md --rag -k "sigmoid" "relu"
 ```
 Python - Can also call functions directly
 ```python
-from flashcard_gen import generate_flashcard_set
-cards = generate_flashcard_set("## Topic\n\nContent...", num_cards=5)
+from flashcard_gen.generate import generate_flashcard_set, generate_flashcard_set_rag
+
+cards = generate_flashcard_set(notes="## Topic\n\nContent...", num_cards=5)
+cards = generate_flashcard_set_rag(notes="...", keywords=["topic1"], num_cards=5)
 ```
 
 ## Requirements
@@ -48,13 +54,13 @@ cards = generate_flashcard_set("## Topic\n\nContent...", num_cards=5)
 - pydantic >= 2.0.0
 - numpy >= 1.24.0
 - ollama >= 0.1.0
+- faiss-cpu >= 1.7.0 (for RAG)
+- sentence-transformers >= 2.0.0 (for RAG)
 
 These install automatically with `pip install -e .`
+
 ## Future Plans
 
 - Obsidian plugin
 - Direct Anki export
 - Fine-tuned model for better card quality
-
-
-
