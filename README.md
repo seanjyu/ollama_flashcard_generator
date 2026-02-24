@@ -1,5 +1,3 @@
-from flashcard_gen import generate_flashcard_set
-
 # Ollama Flashcard Generator
 
 Generate flashcards from markdown notes using local LLMs through Ollama. Built as a foundation for a future Obsidian plugin.
