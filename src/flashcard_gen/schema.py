@@ -1,7 +1,7 @@
 from enum import Enum
 import re
 from pydantic import BaseModel, field_validator, model_validator
-
+from dataclasses import dataclass
 
 class CardType(str, Enum):
     BASIC = "basic"
@@ -13,6 +13,11 @@ class SimilarityMethod(str, Enum):
     SEMANTIC = "semantic"
     BOTH = "both"
 
+@dataclass
+class Chunk:
+    content: str
+    header: str | None = None
+    level: str = "header"
 
 class Flashcard(BaseModel):
     """A single flashcard."""
